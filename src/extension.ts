@@ -45,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 	
 
 
-	//console.log(vscode.extensions.all);
+	console.log(vscode.extensions.all);
 
 }
 
