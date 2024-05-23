@@ -47,6 +47,11 @@
         "command": "sample-ext.openWebview",
         "category": "sample-ext",
         "title": "Open Webview"
+      },
+      {
+        "command": "sample-ext.runCommand",
+        "category": "sample-ext",
+        "title": "Run Command"
       }
     ],
     "languages": [

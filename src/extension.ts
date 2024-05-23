@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import { HelloWorldPanel } from './HelloWorldPanel';
 import { SidebarProvider } from './SidebarProvider';
+import { exec } from 'child_process';
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -32,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
 		console.log({ answer });
 	}));
 	
-	//Webview
+	// Webview
 	context.subscriptions.push(
 		vscode.commands.registerCommand('sample-ext.openWebview', () => {
 			HelloWorldPanel.createOrShow(context.extensionUri);
@@ -43,7 +44,22 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider("sample-ext-sidebar", sidebarProvider));
 	
-
+	// Terminal Commands
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.runCommand', () => {
+			const command = 'ls';
+			exec(command, (error, stdout, stderr) => {
+				if (error) {
+					vscode.window.showErrorMessage(`Error: ${error.message}`);
+					return;
+				}
+				if (stderr) {
+					vscode.window.showWarningMessage(`Stderr: ${stderr}`);
+					return;
+				}
+				vscode.window.showInformationMessage(`Output: ${stdout}`);
+			});
+		}));
 
 	console.log(vscode.extensions.all);
 
