@@ -38,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
 			HelloWorldPanel.createOrShow(context.extensionUri);
 		}));
 
-	// //Sidebar
+	//Sidebar
 	const sidebarProvider = new SidebarProvider(context.extensionUri);
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider("sample-ext-sidebar", sidebarProvider));

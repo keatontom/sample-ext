@@ -48,6 +48,21 @@
         "category": "sample-ext",
         "title": "Open Webview"
       }
+    ],
+    "languages": [
+      {
+        "id": "yang",
+        "aliases": ["YANG", "yang"],
+        "extensions": [".yang"],
+        "configuration": "./src/syntax/yang.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "yang",
+        "scopeName": "source.yang",
+        "path": "./src/syntax/yang.tmLanguage"
+      }
     ]
   },
   "scripts": {
