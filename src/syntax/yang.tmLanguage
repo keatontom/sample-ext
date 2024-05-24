@@ -139,6 +139,12 @@
 			<key>match</key>
 			<string>(\brpc|\bnotification)(\s+)([\w_\-\d]+)</string>
 		</dict>
+		<dict>
+            <key>match</key>
+            <string>\b\w+\b</string>
+            <key>name</key>
+            <string>variable.other.source.yang</string>
+        </dict>
 	</array>
 	<key>scopeName</key>
 	<string>source.yang</string>
