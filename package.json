@@ -54,9 +54,9 @@
         "title": "Switch to pyang Directory"
       },
       {
-        "command": "sample-ext.runCommand",
+        "command": "sample-ext.validate",
         "category": "sample-ext",
-        "title": "Run Command"
+        "title": "Validate pyang file"
       }
     ],
     "languages": [

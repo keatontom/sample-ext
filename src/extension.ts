@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}));
 	
 	context.subscriptions.push(
-		vscode.commands.registerCommand('sample-ext.runCommand', () => {
+		vscode.commands.registerCommand('sample-ext.validate', () => {
 			const folderPath = './pyang';
 			const terminal = vscode.window.createTerminal("Pyang Terminal");
 	
