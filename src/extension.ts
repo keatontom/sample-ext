@@ -46,9 +46,10 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	// Terminal Commands
 	context.subscriptions.push(
-		vscode.commands.registerCommand('sample-ext.runCommand', () => {
-			const command = 'ls';
-			exec(command, (error, stdout, stderr) => {
+		vscode.commands.registerCommand('sample-ext.cdpyang', () => {
+			const folderPath = './pyang';
+			const command1 = `cd ${folderPath} && pwd`;
+			exec(command1, (error, stdout, stderr) => {
 				if (error) {
 					vscode.window.showErrorMessage(`Error: ${error.message}`);
 					return;
@@ -60,7 +61,23 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showInformationMessage(`Output: ${stdout}`);
 			});
 		}));
-
+	
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.runCommand', () => {
+			const folderPath = './pyang';
+			const terminal = vscode.window.createTerminal("Pyang Terminal");
+	
+			// Switch to the specified directory and run commands
+			terminal.sendText(`cd ${folderPath}`);
+			terminal.sendText('pwd');  // Display current directory
+			// Add any additional commands you want to run in the same terminal session
+			terminal.sendText('pyang hello.yang');   // List files in the directory
+	
+			// Show the terminal
+			terminal.show();
+		})
+	);
+	
 	console.log(vscode.extensions.all);
 
 }
