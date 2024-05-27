@@ -4,6 +4,9 @@ import * as vscode from 'vscode';
 import { HelloWorldPanel } from './HelloWorldPanel';
 import { SidebarProvider } from './SidebarProvider';
 import { exec } from 'child_process';
+
+let pyangTerminal: vscode.Terminal | undefined;
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -46,10 +49,15 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	// Terminal Commands
 	context.subscriptions.push(
-		vscode.commands.registerCommand('sample-ext.cdpyang', () => {
-			const folderPath = './pyang';
-			const command1 = `cd ${folderPath} && pwd`;
-			exec(command1, (error, stdout, stderr) => {
+		vscode.commands.registerCommand('sample-ext.pyang', () => {
+			const terminalName = "Pyang Terminal";
+			const folderPath = 'pyang';
+			if (!pyangTerminal) {
+				pyangTerminal = vscode.window.createTerminal(terminalName);
+			}
+			pyangTerminal.show();
+
+			exec('pwd', (error, stdout, stderr) => {
 				if (error) {
 					vscode.window.showErrorMessage(`Error: ${error.message}`);
 					return;
@@ -58,29 +66,31 @@ export function activate(context: vscode.ExtensionContext) {
 					vscode.window.showWarningMessage(`Stderr: ${stderr}`);
 					return;
 				}
-				vscode.window.showInformationMessage(`Output: ${stdout}`);
+				const currentDir = stdout.trim();
+				if (currentDir !== `${process.cwd()}/${folderPath}`) {
+					if (pyangTerminal) {
+						pyangTerminal.sendText(`cd ${folderPath}`);
+					}
+				}
 			});
 		}));
 	
 	context.subscriptions.push(
 		vscode.commands.registerCommand('sample-ext.validate', () => {
-			const folderPath = './pyang';
-			const terminal = vscode.window.createTerminal("Pyang Terminal");
+			if (pyangTerminal) {
+				pyangTerminal.show();
+				pyangTerminal.sendText('pyang hello.yang');
+			} else {
+                vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
+			}
+		}));
 	
-			// Switch to the specified directory and run commands
-			terminal.sendText(`cd ${folderPath}`);
-			terminal.sendText('pwd');  // Display current directory
-			// Add any additional commands you want to run in the same terminal session
-			terminal.sendText('pyang hello.yang');   // List files in the directory
-	
-			// Show the terminal
-			terminal.show();
-		})
-	);
-	
-	console.log(vscode.extensions.all);
 
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+	if (pyangTerminal) {
+		pyangTerminal.dispose();
+	}
+}

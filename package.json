@@ -49,9 +49,9 @@
         "title": "Open Webview"
       },
       {
-        "command": "sample-ext.cdpyang",
+        "command": "sample-ext.pyang",
         "category": "sample-ext",
-        "title": "Switch to pyang Directory"
+        "title": "Testing"
       },
       {
         "command": "sample-ext.validate",

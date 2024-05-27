@@ -1,36 +1,23 @@
-<script lang="ts">
-  let count = 0;
+<script context="module" lang='ts'>
+  declare function acquireVsCodeApi(): any;
+  const vscode = acquireVsCodeApi();
+
+  function runPyangCommand() {
+    vscode.postMessage({
+      type: 'runPyang'
+    });
+  }
+  function validatePyangFile() {
+    vscode.postMessage({
+      type: 'validatePyang'
+    });
+  }
 </script>
+<button on:click={runPyangCommand}>Run Pyang Command</button>
+<button on:click={validatePyangFile}>Validate Pyang File</button>
+
+<!-- markup (zero or more items) goes here -->
 
 <style>
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; 
-  height: 100vh;
-  padding-top: 1rem; 
-  text-align: center;
-}
-
-input {
-  margin-bottom: 1rem; 
-}
-
-.count {
-  font-size: 2rem; 
-  margin: 1rem 0; 
-}
-
-button {
-  margin-top: 1rem; 
-}
+	/* styles go here */
 </style>
-
-<div class="container">
-  <input />
-  <div class="count">{count}</div>
-  <button on:click={() => {
-    count++;
-  }}>Increment</button>
-</div>
