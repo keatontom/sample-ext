@@ -76,10 +76,10 @@ export function activate(context: vscode.ExtensionContext) {
 		}));
 	
 	context.subscriptions.push(
-		vscode.commands.registerCommand('sample-ext.validate', () => {
+		vscode.commands.registerCommand('sample-ext.validate', (fileName: string) => {
 			if (pyangTerminal) {
 				pyangTerminal.show();
-				pyangTerminal.sendText('pyang hello.yang');
+				pyangTerminal.sendText(`pyang ${fileName}`);
 			} else {
                 vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
 			}
