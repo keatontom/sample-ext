@@ -54,9 +54,14 @@
         "title": "Testing"
       },
       {
-        "command": "sample-ext.validate",
+        "command": "sample-ext.validate-1.0",
         "category": "sample-ext",
-        "title": "Validate pyang file"
+        "title": "Validate pyang file (YANG 1.0)"
+      },
+      {
+        "command": "sample-ext.validate-1.1",
+        "category": "sample-ext",
+        "title": "Validate pyang file (YANG 1.1)"
       }
     ],
     "languages": [

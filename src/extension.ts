@@ -20,21 +20,21 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
-  // Message Pop-up 
-  context.subscriptions.push(
-    vscode.commands.registerCommand('sample-ext.helloWorld', () => {
-      vscode.window.showInformationMessage('Hello World from sample-ext!');
-    }));
-	
+	// Message Pop-up 
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.helloWorld', () => {
+		vscode.window.showInformationMessage('Hello World from sample-ext!');
+		}));
+		
 	// Message Pop-up with buttons
-  context.subscriptions.push(
-    vscode.commands.registerCommand('sample-ext.askQuestion', async () => {
-		const answer = await vscode.window.showInformationMessage('How is your day?', 'Good', 'Bad');
-		if (answer === 'Bad') {
-			vscode.window.showInformationMessage("Sorry to hear that");
-		} 
-		console.log({ answer });
-	}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.askQuestion', async () => {
+			const answer = await vscode.window.showInformationMessage('How is your day?', 'Good', 'Bad');
+			if (answer === 'Bad') {
+				vscode.window.showInformationMessage("Sorry to hear that");
+			} 
+			console.log({ answer });
+		}));
 	
 	// Webview
 	context.subscriptions.push(
@@ -42,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
 			HelloWorldPanel.createOrShow(context.extensionUri);
 		}));
 
-	//Sidebar
+	// Sidebar
 	const sidebarProvider = new SidebarProvider(context.extensionUri);
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider("sample-ext-sidebar", sidebarProvider));
@@ -76,15 +76,24 @@ export function activate(context: vscode.ExtensionContext) {
 		}));
 	
 	context.subscriptions.push(
-		vscode.commands.registerCommand('sample-ext.validate', (fileName: string) => {
+		vscode.commands.registerCommand('sample-ext.validate-1.0', (fileName: string) => {
 			if (pyangTerminal) {
 				pyangTerminal.show();
 				pyangTerminal.sendText(`pyang ${fileName}`);
 			} else {
-                vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
+				vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
 			}
 		}));
 	
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.validate-1.1', (fileName: string) => {
+			if (pyangTerminal) {
+				pyangTerminal.show();
+				pyangTerminal.sendText(`pyang ${fileName}`);
+			} else {
+				vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
+			}
+		}));
 
 }
 

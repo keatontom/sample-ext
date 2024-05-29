@@ -39,8 +39,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           vscode.commands.executeCommand('sample-ext.pyang');
           break;
         }
-        case "validatePyang": {
-          vscode.commands.executeCommand('sample-ext.validate', data.value);
+        case "validatePyang10": {
+          vscode.commands.executeCommand('sample-ext.validate-1.0', data.value);
+          break;
+        }
+        case "validatePyang11": {
+          vscode.commands.executeCommand('sample-ext.validate-1.1', data.value);
           break;
           }
       }
