@@ -4,6 +4,8 @@ import * as vscode from 'vscode';
 import { HelloWorldPanel } from './HelloWorldPanel';
 import { SidebarProvider } from './SidebarProvider';
 import { exec } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 let pyangTerminal: vscode.Terminal | undefined;
 
@@ -75,27 +77,86 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 		}));
 	
+	// context.subscriptions.push(
+	// 	vscode.commands.registerCommand('sample-ext.validate-1.0', (fileName: string) => {
+	// 		if (pyangTerminal) {
+	// 			pyangTerminal.show();
+	// 			pyangTerminal.sendText(`pyang ${fileName}`);
+	// 		} else {
+	// 			vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
+	// 		}
+	// 	}));
+	
+	// context.subscriptions.push(
+	// 	vscode.commands.registerCommand('sample-ext.validate-1.1', (fileName: string) => {
+	// 		if (pyangTerminal) {
+	// 			pyangTerminal.show();
+	// 			pyangTerminal.sendText(`pyang ${fileName}`);
+	// 		} else {
+	// 			vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
+	// 		}
+	// 	}));
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand('sample-ext.validate-1.0', (fileName: string) => {
-			if (pyangTerminal) {
-				pyangTerminal.show();
-				pyangTerminal.sendText(`pyang ${fileName}`);
-			} else {
-				vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
+			if (fileName === '') {
+				vscode.window.showWarningMessage('Warning: Please input a yang file');
+				return;
 			}
-		}));
-	
+			validateYangFile(fileName, '1.0');
+		})
+	);
+
 	context.subscriptions.push(
 		vscode.commands.registerCommand('sample-ext.validate-1.1', (fileName: string) => {
-			if (pyangTerminal) {
-				pyangTerminal.show();
-				pyangTerminal.sendText(`pyang ${fileName}`);
-			} else {
-				vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
+			if (fileName === '') {
+				vscode.window.showWarningMessage('Warning: Please input a yang file');
+				return;
 			}
-		}));
-
+			validateYangFile(fileName, '1.1');
+		})
+	);
 }
+
+function validateYangFile(fileName: string, expectedVersion: string) {
+	const filePath = path.join('pyang', fileName);
+	fs.readFile(filePath, 'utf8', (err, data) => {
+		if (!pyangTerminal) {
+			vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
+			return;
+		}
+		if (err) {
+			vscode.window.showErrorMessage(`Error reading file: ${err.message}`);
+			return;
+		}
+
+		const versionMatch = data.match(/yang-version\s+(\d+\.\d+);/);
+		let version: string;
+		let message: string;
+
+		if (versionMatch) {
+			version = versionMatch[1];
+			message = `YANG version ${version} found in the file.`;
+		} else {
+			version = '1.0';
+			message = `YANG version not specified in the file. Defaulting to YANG version ${version}.`;
+		}
+
+		if (version !== expectedVersion) {
+			vscode.window.showWarningMessage(`Warning: Expected YANG version ${expectedVersion} but found ${version}. ${message}`);
+		} else {
+			vscode.window.showInformationMessage(`YANG version ${version} validated successfully. ${message}`);
+		}
+
+		if (pyangTerminal) {
+			pyangTerminal.show();
+			pyangTerminal.sendText(`pyang ${fileName}`);
+		} else {
+			vscode.window.showErrorMessage('Pyang Terminal is not created yet. Run the pyang command first.');
+		}
+	});
+}
+
 
 // This method is called when your extension is deactivated
 export function deactivate() {

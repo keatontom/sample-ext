@@ -18,7 +18,7 @@
         {
           "id": "sample-ext-sidebar-view",
           "title": "sample-ext",
-          "icon": "media/Calgary_Flames_logo.png"
+          "icon": "media/Telus2.png"
         }
       ]
     },
@@ -28,7 +28,7 @@
           "type": "webview",
           "id": "sample-ext-sidebar",
           "name": "sample-ext",
-          "icon": "media/Calgary_Flames_logo.png",
+          "icon": "media/Telus2.png",
           "title": "sample-ext Sidebar"
         }
       ]
