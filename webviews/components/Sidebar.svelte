@@ -4,11 +4,6 @@
 
   let fileName = '';
 
-  function runPyangCommand() {
-    vscode.postMessage({
-      type: 'runPyang'
-    });
-  }
   function validatePyangFile10() {
     vscode.postMessage({
       type: 'validatePyang10',
@@ -22,14 +17,7 @@
     });
   }
 </script>
-<button on:click={runPyangCommand}>Run Pyang Command</button>
 <input type="text" bind:value={fileName} placeholder="Enter file name" style="text-align: center" />
 <button on:click={validatePyangFile10}>Validate Pyang File 1.0</button>
 <button on:click={validatePyangFile11}>Validate Pyang File 1.1</button>
 
-
-<!-- markup (zero or more items) goes here -->
-
-<style>
-	/* styles go here */
-</style>
