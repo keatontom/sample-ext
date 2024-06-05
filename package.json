@@ -44,11 +44,6 @@
         "title": "Ask Question"
       },
       {
-        "command": "sample-ext.openWebview",
-        "category": "sample-ext",
-        "title": "Open Webview"
-      },
-      {
         "command": "sample-ext.pyang",
         "category": "sample-ext",
         "title": "Testing"
@@ -62,6 +57,11 @@
         "command": "sample-ext.validate-1.1",
         "category": "sample-ext",
         "title": "Validate pyang file (YANG 1.1)"
+      },
+      {
+        "command": "sample-ext.treeView",
+        "category": "sample-ext",
+        "title": "Show Tree View"
       }
     ],
     "languages": [

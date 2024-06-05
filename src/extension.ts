@@ -1,7 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { HelloWorldPanel } from './HelloWorldPanel';
 import { SidebarProvider } from './SidebarProvider';
 import { exec }  from 'child_process';
 import * as fs from 'fs';
@@ -25,7 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Message Pop-up 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('sample-ext.helloWorld', () => {
-		vscode.window.showInformationMessage('Hello World from sample-ext!');
+			vscode.window.showInformationMessage('Hello World from sample-ext!');
 		}));
 		
 	// Message Pop-up with buttons
@@ -34,14 +33,8 @@ export function activate(context: vscode.ExtensionContext) {
 			const answer = await vscode.window.showInformationMessage('How is your day?', 'Good', 'Bad');
 			if (answer === 'Bad') {
 				vscode.window.showInformationMessage("Sorry to hear that");
-			} 
+			}
 			console.log({ answer });
-		}));
-	
-	// Webview
-	context.subscriptions.push(
-		vscode.commands.registerCommand('sample-ext.openWebview', () => {
-			HelloWorldPanel.createOrShow(context.extensionUri);
 		}));
 
 	// Sidebar
@@ -69,8 +62,33 @@ export function activate(context: vscode.ExtensionContext) {
 			validateYangFile(fileName, '1.1');
 		})
 	);
-}
 
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.treeView', (fileName: string) => {
+			if (fileName === '') {
+				vscode.window.showWarningMessage('Warning: Please input a yang file');
+				return;
+			}
+			const command = `pyang ${fileName} -f tree`;
+			exec(command, { cwd: 'pyang' }, (error, stdout, stderr) => {
+				if (error) {
+					vscode.window.showErrorMessage(`Error running pyang: ${error.message}`);
+					return;
+				}
+				if (stderr) {
+					vscode.window.showErrorMessage(`Error: ${stderr}`);
+					return;
+				}
+				if (sidebarProvider._view) {
+					sidebarProvider._view.webview.postMessage({
+						type: 'showTreeView',
+						value: stdout
+					});
+				}
+			});
+		})
+	);
+}
 // Function to ask to proceed with defaulted YANG verison 
 async function defaultYang(fileName: string) {
 	const answer = await vscode.window.showInformationMessage(`The version specified in ${fileName} does not match. 
@@ -130,8 +148,9 @@ function validateYangFile(fileName: string, expectedVersion: string) {
 					if (stderr) {
 						vscode.window.showErrorMessage(`Error: ${stderr}`);
 						return;
+					} if (stdout === '') {
+						vscode.window.showInformationMessage(`${fileName} validated successuflly.`);
 					}
-					vscode.window.showInformationMessage(`${fileName} validated successuflly.`);
 				});
 			} 
 		}
