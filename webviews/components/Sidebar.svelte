@@ -14,12 +14,16 @@
   let gitLabUrl = '';
   let privateToken = '';
   let pathToCert = '';
+  let projectName = '';
 
   window.addEventListener('message', event => {
     const message = event.data;
     switch (message.type) {
       case 'showTreeView':
         treeViewData = message.value;
+        break;
+      case 'connectedToGitLab':
+        currentView = 'GitLabActions';
         break;
     }
   });
@@ -49,6 +53,10 @@
     currentView = 'gitlab'
   }
 
+  function backFromGitLab() {
+    currentView = 'main'
+  }
+
   function connectToGitLab() {
     vscode.postMessage({
       type: 'connectToGitLab',
@@ -58,6 +66,13 @@
         pathToCert
       }
     });
+  }
+
+  function createGitLabRepo() {
+    vscode.postMessage({
+      type: 'createGitLabRepo',
+      value: projectName
+    })
   }
 
 
@@ -80,14 +95,20 @@
   {/if}
 {/if}
 
+<!--GitLab Connection View-->
 {#if currentView === 'gitlab'}
   <input type="text" bind:value={gitLabUrl} placeholder="Enter GitLab URL"/>
   <input type="text" bind:value={privateToken} placeholder="Enter Token"/>
   <input type="text" bind:value={pathToCert} placeholder="Enter Certificate Path"/>
   <button on:click={connectToGitLab}>Connect</button>
-
+  <button on:click={backFromGitLab}>Back</button>
 {/if}
 
+<!--GitLab Actions View-->
+{#if currentView === 'GitLabActions'}
+  <input type="text" bind:value={projectName} placeholder="Enter Project Name"/>
+  <button on:click={createGitLabRepo}>Create GitLab Repo</button>
+{/if}
 
 <style>
   pre {

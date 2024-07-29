@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as https from 'https';
 
 // let pyangTerminal: vscode.Terminal | undefined;
+let sidebarProvider: SidebarProvider;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -137,7 +138,12 @@ async function GitLabConnect(gitLabUrl: string, privateToken: string, pathToCert
         );
 
 		if (response.status === 200) {
-            vscode.window.showInformationMessage('Successfully connected to GitLab!');
+			vscode.window.showInformationMessage('Successfully connected to GitLab!');
+            if (sidebarProvider._view) {
+                sidebarProvider._view.webview.postMessage({
+                    type: 'connectedToGitLab'
+                });
+            }
         } else {
             vscode.window.showErrorMessage(`Failed to connect to GitLab: ${response.statusText}`);
         }
