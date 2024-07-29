@@ -49,6 +49,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           vscode.commands.executeCommand('sample-ext.treeView', data.value);
           break;
         }
+        case "connectToGitLab": {
+          const { gitLabUrl, privateToken, pathToCert } = data.value;
+          vscode.commands.executeCommand('sample-ext.connectGitLab', gitLabUrl, privateToken, pathToCert);
+          break;
+        }
       }
     });
   }

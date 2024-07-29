@@ -1,10 +1,10 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+import axios from 'axios';
 import * as vscode from 'vscode';
 import { SidebarProvider } from './SidebarProvider';
 import { exec }  from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as https from 'https';
 
 // let pyangTerminal: vscode.Terminal | undefined;
 
@@ -70,7 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 			const command = `pyang ${fileName} -f tree`;
-			exec(command, { cwd: 'pyang' }, (error, stdout, stderr) => {
+			exec(command, { cwd: 'yang_mod' }, (error, stdout, stderr) => {
 				if (error) {
 					vscode.window.showErrorMessage(`Error running pyang: ${error.message}`);
 					return;
@@ -88,7 +88,124 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 		})
 	);
+
+	// Connect to GitLab
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.connectGitLab', (gitLabUrl: string, privateToken: string, pathToCert: string) => {
+			if (gitLabUrl === '' || privateToken === '' || pathToCert === '') {
+				vscode.window.showErrorMessage('Warning: GitLab URL, Token, and Path to Certification are required.');
+			}
+			GitLabConnect(gitLabUrl, privateToken, pathToCert);
+		})
+	);
+	
+	// Create GitLab Repo
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.createGitLabRepo', async () => {
+			const projectName = await vscode.window.showInputBox({ prompt: 'Enter the project name' });
+			const privateToken = await vscode.window.showInputBox({ prompt: 'Enter your GitLab private token', password: true });
+
+			if (projectName && privateToken) {
+				await createGitLabRepo(projectName, privateToken);
+			} else {
+				vscode.window.showErrorMessage('Project name and private token are required.');
+			}
+		})
+	);
+
 }
+
+// Function to Connect GitLab
+async function GitLabConnect(gitLabUrl: string, privateToken: string, pathToCert: string) {
+
+	if (!fs.existsSync(pathToCert)) {
+		vscode.window.showErrorMessage('CA cert not found');
+		return;
+	}
+	const ca = fs.readFileSync(pathToCert);
+
+    try {
+        const response = await axios.get(gitLabUrl, {
+                headers: {
+                    'PRIVATE-TOKEN': privateToken
+                },
+                httpsAgent: new https.Agent({
+                    ca: ca,
+                    rejectUnauthorized: false
+                })
+            }
+        );
+
+		if (response.status === 200) {
+            vscode.window.showInformationMessage('Successfully connected to GitLab!');
+        } else {
+            vscode.window.showErrorMessage(`Failed to connect to GitLab: ${response.statusText}`);
+        }
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            vscode.window.showErrorMessage(`Error: ${error.message}`);
+        } else if (error instanceof Error) {
+            vscode.window.showErrorMessage(`Error: ${error.message}`);
+        } else {
+            vscode.window.showErrorMessage('Unknown error occurred');
+        }
+    }
+}
+
+// Fuction to call GitLab API
+// glpat-Bxz9y-TGCk2aAGAPqXxt - https://gitlab.com/api/v4/projects
+// aY_x1SxRm154wmsbhNmF - https://gitlab.tinaa.osc.tac.net/api/v4/projects
+// local machine path: /usr/local/share/ca-certificates/TCSO-root-CA.crt
+
+async function createGitLabRepo(projectName: string, privateToken: string) {
+	const caPath = '/home/keaton/sample-ext/ca-cert/TCSO-root-CA.crt';
+	if (!fs.existsSync(caPath)) {
+		vscode.window.showErrorMessage('CA cert not found');
+		return;
+	}
+ 
+	const ca = fs.readFileSync(caPath);
+
+    try {
+        const response = await axios.post(
+            'https://gitlab.tinaa.osc.tac.net/api/v4/projects',
+            {
+                name: projectName,
+				visibility: 'private',
+				namespace_id: '2591'
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'PRIVATE-TOKEN': privateToken,
+				},
+				httpsAgent: new https.Agent({
+					ca: ca,
+					rejectUnauthorized: false,
+				}),
+            }
+        );
+
+        if (response.status === 201) {
+            vscode.window.showInformationMessage(`Repository ${projectName} created successfully!`);
+            return response.data;
+        } else {
+            vscode.window.showErrorMessage(`Failed to create repository: ${response.statusText}`);
+        }
+    } catch (error) {
+		if (axios.isAxiosError(error)) { 
+            vscode.window.showErrorMessage(`Error: ${error.message}`);
+        } else if (error instanceof Error) {
+            vscode.window.showErrorMessage(`Error: ${error.message}`);
+        } else {
+            vscode.window.showErrorMessage(`Unknown error occurred`);
+		}
+	}
+}
+
+
+
+
 // Function to ask to proceed with defaulted YANG verison 
 async function defaultYang(fileName: string) {
 	const answer = await vscode.window.showInformationMessage(`The version specified in ${fileName} does not match. 
@@ -103,7 +220,7 @@ async function defaultYang(fileName: string) {
 
 // Function to send error messages for incorrect YANG version 
 function validateYangFile(fileName: string, expectedVersion: string) {
-	const filePath = path.join('pyang', fileName);
+	const filePath = path.join('yang_mod', fileName);
 	fs.readFile(filePath, 'utf8', async (err, data) => {
 		if (err) {
 			vscode.window.showErrorMessage(`${err.message}`);
@@ -126,7 +243,7 @@ function validateYangFile(fileName: string, expectedVersion: string) {
 
 		if (version === expectedVersion) {
 			const command = `pyang ${fileName}`;
-			exec(command, { cwd: 'pyang' }, (error, stdout, stderr) => {
+			exec(command, { cwd: 'yang_mod' }, (error, stdout, stderr) => {
 				if (error) {
 					vscode.window.showErrorMessage(`Error running pyang: ${error.message}`);
 					return;
@@ -134,13 +251,14 @@ function validateYangFile(fileName: string, expectedVersion: string) {
 				if (stderr) {
 					vscode.window.showErrorMessage(`Error: ${stderr}`);
 					return;
+				} if (stdout === '') {
+					vscode.window.showInformationMessage(`${fileName} validated successuflly.`);
 				}
-				vscode.window.showInformationMessage(`${fileName} validated successuflly.`);
 			});
 		} else {
 			if (await defaultYang(fileName) === 'Yes') {
 				const command = `pyang ${fileName}`;
-				exec(command, { cwd: 'pyang' }, (error, stdout, stderr) => {
+				exec(command, { cwd: 'yang_mod' }, (error, stdout, stderr) => {
 					if (error) {
 						vscode.window.showErrorMessage(`Error running pyang: ${error.message}`);
 						return;

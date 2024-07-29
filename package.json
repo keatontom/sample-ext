@@ -62,13 +62,27 @@
         "command": "sample-ext.treeView",
         "category": "sample-ext",
         "title": "Show Tree View"
+      },
+      {
+        "command": "sample-ext.connectGitLab",
+        "category": "sample-ext",
+        "title": "Connect to GitLab"
+      },
+      {
+        "command": "sample-ext.createGitLabRepo",
+        "title": "Create GitLab Repository"
       }
     ],
     "languages": [
       {
         "id": "yang",
-        "aliases": ["YANG", "yang"],
-        "extensions": [".yang"],
+        "aliases": [
+          "YANG",
+          "yang"
+        ],
+        "extensions": [
+          ".yang"
+        ],
         "configuration": "./src/syntax/yang.configuration.json"
       }
     ],
@@ -115,5 +129,8 @@
     "typescript": "^5.4.5",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "@sveltejs/kit": "^2.5.18"
   }
 }
