@@ -11,10 +11,12 @@
   let fileName = '';
   let treeViewData = '';
 
-  let gitLabUrl = '';
-  let privateToken = '';
-  let pathToCert = '';
+  let gitLabUrl = 'https://gitlab.tinaa.osc.tac.net/api/v4/projects';
+  let privateToken = 'aY_x1SxRm154wmsbhNmF';
+  let pathToCert = '/usr/local/share/ca-certificates/TCSO-root-CA.crt';
+
   let projectName = '';
+  let groupId = '';
 
   window.addEventListener('message', event => {
     const message = event.data;
@@ -53,8 +55,20 @@
     currentView = 'gitlab'
   }
 
-  function backFromGitLab() {
+  function navigateToYang() {
+    currentView = 'yang'
+  }
+
+  function backToMain() {
     currentView = 'main'
+  }
+
+  function backToGitLabActions() {
+    currentView = 'GitLabActions'
+  }
+
+  function createRepoPage() {
+    currentView = 'createRepo'
   }
 
   function connectToGitLab() {
@@ -71,7 +85,13 @@
   function createGitLabRepo() {
     vscode.postMessage({
       type: 'createGitLabRepo',
-      value: projectName
+      value: {
+        projectName,
+        groupId,
+        gitLabUrl,
+        privateToken,
+        pathToCert
+      }
     })
   }
 
@@ -84,7 +104,12 @@
 
 <!--Main View-->
 {#if currentView === 'main'}
+  <button on:click={navigateToYang}>Yang Edit</button>
   <button on:click={navigateToGitLab}>Connect to GitLab</button>
+{/if}
+
+<!--Yang Edit View-->
+{#if currentView === 'yang'}
   <input type="text" bind:value={fileName} placeholder="Enter file name" style="text-align: center" />
   <button on:click={validatePyangFile10}>Validate Pyang File 1.0</button>
   <button on:click={validatePyangFile11}>Validate Pyang File 1.1</button>
@@ -101,14 +126,29 @@
   <input type="text" bind:value={privateToken} placeholder="Enter Token"/>
   <input type="text" bind:value={pathToCert} placeholder="Enter Certificate Path"/>
   <button on:click={connectToGitLab}>Connect</button>
-  <button on:click={backFromGitLab}>Back</button>
+  <button on:click={backToMain}>Back</button>
 {/if}
 
 <!--GitLab Actions View-->
 {#if currentView === 'GitLabActions'}
-  <input type="text" bind:value={projectName} placeholder="Enter Project Name"/>
-  <button on:click={createGitLabRepo}>Create GitLab Repo</button>
+  <button on:click={createRepoPage}>Create GitLab Repo</button>
+  <button on:click={createRepoPage}>Push File to Repo</button>
+
 {/if}
+
+        <!--GitLab Create Project/Repo View-->
+        {#if currentView === 'createRepo'}
+          <input type="text" bind:value={projectName} placeholder="Enter Project Name"/>
+          <input type="text" bind:value={groupId} placeholder="Enter Group Id"/>
+          <button on:click={createGitLabRepo}>Create Repo</button>
+          <button on:click={backToGitLabActions}>Back</button>
+        {/if}
+
+        <!--GitLab Push File to Repo-->
+        {#if currentView === 'pushFile'}
+          <input type="text">
+        {/if}
+
 
 <style>
   pre {

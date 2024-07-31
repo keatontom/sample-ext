@@ -165,7 +165,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           break;
         }
         case "createGitLabRepo": {
-          vscode.commands.executeCommand('sample-ext.createGitLabRepo', data.value);
+          const {projectName, groupId, gitLabUrl, privateToken, pathToCert } = data.value;
+          vscode.commands.executeCommand('sample-ext.createGitLabRepo', projectName, groupId, gitLabUrl, privateToken, pathToCert);
           break;
         }
       }
