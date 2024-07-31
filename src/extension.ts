@@ -6,9 +6,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as https from 'https';
 
-// let pyangTerminal: vscode.Terminal | undefined;
-let sidebarProvider: SidebarProvider;
-
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -92,70 +89,98 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Connect to GitLab
 	context.subscriptions.push(
-		vscode.commands.registerCommand('sample-ext.connectGitLab', (gitLabUrl: string, privateToken: string, pathToCert: string) => {
+		vscode.commands.registerCommand('sample-ext.connectGitLab', async (gitLabUrl: string, privateToken: string, pathToCert: string) => {
 			if (gitLabUrl === '' || privateToken === '' || pathToCert === '') {
 				vscode.window.showErrorMessage('Warning: GitLab URL, Token, and Path to Certification are required.');
+				return;
 			}
-			GitLabConnect(gitLabUrl, privateToken, pathToCert);
+			if (!fs.existsSync(pathToCert)) {
+				vscode.window.showErrorMessage('CA cert not found');
+				return;
+			}
+			const ca = fs.readFileSync(pathToCert);
+
+			try {
+				const response = await axios.get(gitLabUrl,
+					{
+						headers: {
+							'PRIVATE-TOKEN': privateToken
+						},
+						httpsAgent: new https.Agent({
+							ca: ca,
+							rejectUnauthorized: false
+						})
+					}
+				);
+				if (response.status === 200) {
+					vscode.window.showInformationMessage('Successfully connected to GitLab');
+					if (sidebarProvider._view) {
+						sidebarProvider._view.webview.postMessage({
+							type: 'connectedToGitLab'
+						});
+					}
+				}
+
+			} catch (error) {
+				if (axios.isAxiosError(error)) {
+					vscode.window.showErrorMessage(`Error: ${error.message}`);
+				} else if (error instanceof Error) {
+					vscode.window.showErrorMessage(`Error: ${error.message}`);
+				} else {
+					vscode.window.showErrorMessage('Unknown error occurred');
+				}
+			}
 		})
 	);
 	
-	// Create GitLab Repo
-	context.subscriptions.push(
-		vscode.commands.registerCommand('sample-ext.createGitLabRepo', async () => {
-			const projectName = await vscode.window.showInputBox({ prompt: 'Enter the project name' });
-			const privateToken = await vscode.window.showInputBox({ prompt: 'Enter your GitLab private token', password: true });
 
-			if (projectName && privateToken) {
-				await createGitLabRepo(projectName, privateToken);
-			} else {
-				vscode.window.showErrorMessage('Project name and private token are required.');
+	// Create GitLab Project
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.createGitLabRepo', async (projectName: string, groupId: string, gitLabUrl: string, privateToken: string, pathToCert: string) => {
+			const ca = fs.readFileSync(pathToCert);
+			if (projectName === '' || groupId === '') {
+				vscode.window.showInformationMessage('Project Name and Group Id are required.');
+				return;
 			}
+
+			try {
+				const response = await axios.post(gitLabUrl,
+					{
+						name: projectName,
+						visibility: 'private',
+						namespace_id: groupId
+					},
+					{
+						headers: {
+							'Content-Type': 'application/json',
+							'PRIVATE-TOKEN': privateToken,
+						},
+						httpsAgent: new https.Agent({
+							ca: ca,
+							rejectUnauthorized: false,
+						}),
+					}
+				);
+
+				if (response.status === 201) {
+					vscode.window.showInformationMessage(`Repository ${projectName} created successfully!`);
+					return response.data;
+				} else {
+					vscode.window.showErrorMessage(`Failed to create repository: ${response.statusText}`);
+				}
+			} catch (error) {
+				if (axios.isAxiosError(error)) {
+					vscode.window.showErrorMessage(`Error: ${error.message}`);
+				} else if (error instanceof Error) {
+					vscode.window.showErrorMessage(`Error: ${error.message}`);
+				} else {
+					vscode.window.showErrorMessage(`Unknown error occurred`);
+				}
+			}
+
 		})
 	);
 
-}
-
-// Function to Connect GitLab
-async function GitLabConnect(gitLabUrl: string, privateToken: string, pathToCert: string) {
-
-	if (!fs.existsSync(pathToCert)) {
-		vscode.window.showErrorMessage('CA cert not found');
-		return;
-	}
-	const ca = fs.readFileSync(pathToCert);
-
-    try {
-        const response = await axios.get(gitLabUrl, {
-                headers: {
-                    'PRIVATE-TOKEN': privateToken
-                },
-                httpsAgent: new https.Agent({
-                    ca: ca,
-                    rejectUnauthorized: false
-                })
-            }
-        );
-
-		if (response.status === 200) {
-			vscode.window.showInformationMessage('Successfully connected to GitLab!');
-            if (sidebarProvider._view) {
-                sidebarProvider._view.webview.postMessage({
-                    type: 'connectedToGitLab'
-                });
-            }
-        } else {
-            vscode.window.showErrorMessage(`Failed to connect to GitLab: ${response.statusText}`);
-        }
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
-            vscode.window.showErrorMessage(`Error: ${error.message}`);
-        } else if (error instanceof Error) {
-            vscode.window.showErrorMessage(`Error: ${error.message}`);
-        } else {
-            vscode.window.showErrorMessage('Unknown error occurred');
-        }
-    }
 }
 
 // Fuction to call GitLab API
@@ -163,51 +188,45 @@ async function GitLabConnect(gitLabUrl: string, privateToken: string, pathToCert
 // aY_x1SxRm154wmsbhNmF - https://gitlab.tinaa.osc.tac.net/api/v4/projects
 // local machine path: /usr/local/share/ca-certificates/TCSO-root-CA.crt
 
-async function createGitLabRepo(projectName: string, privateToken: string) {
-	const caPath = '/home/keaton/sample-ext/ca-cert/TCSO-root-CA.crt';
-	if (!fs.existsSync(caPath)) {
-		vscode.window.showErrorMessage('CA cert not found');
-		return;
-	}
+// async function createGitLabRepo(projectName: string, privateToken: string) {
  
-	const ca = fs.readFileSync(caPath);
 
-    try {
-        const response = await axios.post(
-            'https://gitlab.tinaa.osc.tac.net/api/v4/projects',
-            {
-                name: projectName,
-				visibility: 'private',
-				namespace_id: '2591'
-            },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'PRIVATE-TOKEN': privateToken,
-				},
-				httpsAgent: new https.Agent({
-					ca: ca,
-					rejectUnauthorized: false,
-				}),
-            }
-        );
+//     try {
+//         const response = await axios.post(
+//             'https://gitlab.tinaa.osc.tac.net/api/v4/projects',
+//             {
+//                 name: projectName,
+// 				visibility: 'private',
+// 				namespace_id: '2591'
+//             },
+//             {
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                     'PRIVATE-TOKEN': privateToken,
+// 				},
+// 				httpsAgent: new https.Agent({
+// 					ca: ca,
+// 					rejectUnauthorized: false,
+// 				}),
+//             }
+//         );
 
-        if (response.status === 201) {
-            vscode.window.showInformationMessage(`Repository ${projectName} created successfully!`);
-            return response.data;
-        } else {
-            vscode.window.showErrorMessage(`Failed to create repository: ${response.statusText}`);
-        }
-    } catch (error) {
-		if (axios.isAxiosError(error)) { 
-            vscode.window.showErrorMessage(`Error: ${error.message}`);
-        } else if (error instanceof Error) {
-            vscode.window.showErrorMessage(`Error: ${error.message}`);
-        } else {
-            vscode.window.showErrorMessage(`Unknown error occurred`);
-		}
-	}
-}
+//         if (response.status === 201) {
+//             vscode.window.showInformationMessage(`Repository ${projectName} created successfully!`);
+//             return response.data;
+//         } else {
+//             vscode.window.showErrorMessage(`Failed to create repository: ${response.statusText}`);
+//         }
+//     } catch (error) {
+// 		if (axios.isAxiosError(error)) { 
+//             vscode.window.showErrorMessage(`Error: ${error.message}`);
+//         } else if (error instanceof Error) {
+//             vscode.window.showErrorMessage(`Error: ${error.message}`);
+//         } else {
+//             vscode.window.showErrorMessage(`Unknown error occurred`);
+// 		}
+// 	}
+// }
 
 
 
