@@ -18,6 +18,11 @@
   let projectName = '';
   let groupId = '';
 
+  let ref = '';
+  let triggerToken = '';
+  let projectId = '';
+
+
   window.addEventListener('message', event => {
     const message = event.data;
     switch (message.type) {
@@ -95,6 +100,23 @@
     })
   }
 
+  function triggerPipelinePage() {
+    currentView = 'triggerPipeline'
+  }
+
+  function triggerPipeline() {
+    vscode.postMessage({
+      type: 'triggerPipeline',
+      value: {
+        projectId,
+        ref,
+        triggerToken,
+        privateToken,
+        pathToCert
+      }
+    })
+  }
+
 
   // Reactive var
   $: {
@@ -132,8 +154,8 @@
 <!--GitLab Actions View-->
 {#if currentView === 'GitLabActions'}
   <button on:click={createRepoPage}>Create GitLab Repo</button>
-  <button on:click={createRepoPage}>Push File to Repo</button>
-
+  <button on:click={triggerPipelinePage}>Trigger Pipeline</button>
+  <button on:click={backToMain}>Back</button>
 {/if}
 
         <!--GitLab Create Project/Repo View-->
@@ -144,9 +166,13 @@
           <button on:click={backToGitLabActions}>Back</button>
         {/if}
 
-        <!--GitLab Push File to Repo-->
-        {#if currentView === 'pushFile'}
-          <input type="text">
+        <!--GitLab Trigger Pipeline View-->
+        {#if currentView === 'triggerPipeline'}
+          <input type="text" bind:value={projectId} placeholder="Enter Pipeline Project ID"/>
+          <input type="text" bind:value={ref} placeholder="Enter Branch or Tag Name"/>
+          <input type="text" bind:value={triggerToken} placeholder="Enter Pipeline Trigger Token"/>
+          <button on:click={triggerPipeline}>Trigger Pipeline</button>
+          <button on:click={backToGitLabActions}>Back</button>
         {/if}
 
 

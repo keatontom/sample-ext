@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
+import path from "path";
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   _view?: vscode.WebviewView;
@@ -60,8 +61,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           break;
         }
         case "createGitLabRepo": {
-          const {projectName, groupId, gitLabUrl, privateToken, pathToCert } = data.value;
+          const { projectName, groupId, gitLabUrl, privateToken, pathToCert } = data.value;
           vscode.commands.executeCommand('sample-ext.createGitLabRepo', projectName, groupId, gitLabUrl, privateToken, pathToCert);
+          break;
+        }
+        case "triggerPipeline": {
+          const { projectId, ref, triggerToken, privateToken, pathToCert } = data.valiue;
+          vscode.commands.executeCommand('sample-ext.triggerPipeline', projectId, ref, triggerToken, privateToken, pathToCert);
           break;
         }
       }

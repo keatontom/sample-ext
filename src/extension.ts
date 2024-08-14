@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as https from 'https';
 import { validateNamingConventions } from './diagnostics';
 import { validateYangFile } from './diagnostics';
+import { triggerPipeline } from './pipeline';
 
 
 // This method is called when your extension is activated
@@ -219,6 +220,16 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
+	// Trigger Pipeline
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.triggerPipeline', (projectId: string, ref: string, triggerToken: string, privateToken: string, pathToCert: string) => {
+			if (projectId && ref && triggerToken && privateToken && pathToCert) {
+				triggerPipeline(projectId, ref, triggerToken, privateToken, pathToCert);
+			} else {
+				vscode.window.showErrorMessage('All fields are required to trigger the pipeline.');
+			}
+		})
+	);
 
 
 }
