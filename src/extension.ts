@@ -171,7 +171,6 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		})
 	);
-	
 
 	// Create GitLab Project
 	context.subscriptions.push(
@@ -222,9 +221,21 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Trigger Pipeline
 	context.subscriptions.push(
-		vscode.commands.registerCommand('sample-ext.triggerPipeline', (projectId: string, ref: string, triggerToken: string, privateToken: string, pathToCert: string) => {
-			if (projectId && ref && triggerToken && privateToken && pathToCert) {
-				triggerPipeline(projectId, ref, triggerToken, privateToken, pathToCert);
+		vscode.commands.registerCommand('sample-ext.triggerPipeline', (
+			ref: string,
+			triggerToken: string,
+			privateToken: string,
+			pathToCert: string,
+			commitId: string,
+			entityName: string,
+			modelCommitId: string,
+			modelFilename: string,
+			modelName: string,
+			modelUrl: string,
+			url: string) => {
+			
+			if (ref && triggerToken && privateToken && pathToCert && commitId && entityName && modelCommitId && modelFilename && modelName && modelUrl) {
+				triggerPipeline(ref, triggerToken, privateToken, pathToCert, commitId, entityName, modelCommitId, modelFilename, modelName, modelUrl, url);
 			} else {
 				vscode.window.showErrorMessage('All fields are required to trigger the pipeline.');
 			}

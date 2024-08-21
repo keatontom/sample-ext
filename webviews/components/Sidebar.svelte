@@ -18,9 +18,15 @@
   let projectName = '';
   let groupId = '';
 
-  let ref = '';
-  let triggerToken = '';
-  let projectId = '';
+  let ref = 'master';
+  let triggerToken = 'glptt-4a24e6016284ec9615c9facb85b70ab8f0649c10';
+  let commitId = '4d45bc1ee66bbf5667f43cedf7a6f02593bba663';
+  let entityName = 'arp';
+  let modelCommitId = '4d45bc1ee66bbf5667f43cedf7a6f02593bba663';
+  let modelFilename = 'ipNetToMediaTable.yang';
+  let modelName = 'arp';
+  let modelUrl = 'git@gitlab.tinaa.osc.tac.net:devops-irc/yang-evolution-scenarios.git';
+  let url = 'git@gitlab.tinaa.osc.tac.net:devops-irc/yang-evolution-scenarios.git';
 
 
   window.addEventListener('message', event => {
@@ -108,11 +114,17 @@
     vscode.postMessage({
       type: 'triggerPipeline',
       value: {
-        projectId,
         ref,
         triggerToken,
         privateToken,
-        pathToCert
+        pathToCert, 
+        commitId,
+        entityName,
+        modelCommitId,
+        modelFilename,
+        modelName,
+        modelUrl,
+        url
       }
     })
   }
@@ -168,9 +180,16 @@
 
         <!--GitLab Trigger Pipeline View-->
         {#if currentView === 'triggerPipeline'}
-          <input type="text" bind:value={projectId} placeholder="Enter Pipeline Project ID"/>
-          <input type="text" bind:value={ref} placeholder="Enter Branch or Tag Name"/>
           <input type="text" bind:value={triggerToken} placeholder="Enter Pipeline Trigger Token"/>
+          <input type="text" bind:value={ref} placeholder="Enter Branch or Tag Name"/>
+          <input type="text" bind:value={commitId} placeholder="Enter Commit Id"/>
+          <input type="text" bind:value={entityName} placeholder="Enter Entity Name"/>
+          <input type="text" bind:value={modelCommitId} placeholder="Enter Model Commit Id"/>
+          <input type="text" bind:value={modelFilename} placeholder="Enter Model Filename"/>
+          <input type="text" bind:value={modelName} placeholder="Enter Model Name"/>
+          <input type="text" bind:value={modelUrl} placeholder="Eneter Model URL"/>
+          <input type="text" bind:value={url} placeholder="Enter URL"/>
+
           <button on:click={triggerPipeline}>Trigger Pipeline</button>
           <button on:click={backToGitLabActions}>Back</button>
         {/if}
