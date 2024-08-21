@@ -39,7 +39,6 @@ export async function triggerPipeline(
     };
 
     try {
-        console.log("emma");
         const response = await axios.post(pipeurl, postdata, {
             headers: {
                 'PRIVATE-TOKEN': privateToken,

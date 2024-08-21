@@ -66,7 +66,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           break;
         }
         case "triggerPipeline": {
-          const {privateToken, pathToCert, triggerToken, ref, commitId, entityName, modelCommitId, modelFilename, modelName, modelUrl, url} = data.valiue;
+          const { privateToken, pathToCert, triggerToken, ref, commitId, entityName, modelCommitId, modelFilename, modelName, modelUrl, url} = data.value;
           vscode.commands.executeCommand('sample-ext.triggerPipeline', privateToken, pathToCert, triggerToken, ref, commitId, entityName, modelCommitId, modelFilename, modelName, modelUrl, url);
           break;
         }
