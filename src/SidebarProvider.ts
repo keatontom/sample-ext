@@ -7,6 +7,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   _doc?: vscode.TextDocument;
   private viewReady: Promise<void>;
   private resolveViewReady!: () => void;
+  static _view: any;
 
   constructor(private readonly _extensionUri: vscode.Uri) {
     this.viewReady = new Promise((resolve) => {
@@ -68,6 +69,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         case "triggerPipeline": {
           const { privateToken, pathToCert, triggerToken, ref, commitId, entityName, modelCommitId, modelFilename, modelName, modelUrl, url} = data.value;
           vscode.commands.executeCommand('sample-ext.triggerPipeline', privateToken, pathToCert, triggerToken, ref, commitId, entityName, modelCommitId, modelFilename, modelName, modelUrl, url);
+          break;
+        }
+        case "viewJobs": {
+          const { privateToken, pathToCert, pipelineId } = data.value;
+          vscode.commands.executeCommand('sample-ext.viewJob', privateToken, pathToCert, pipelineId);
+          break;
+        }
+        case "getArtifacts": {
+          const { privateToken, pathToCert, pipelineId } = data.value;
+          vscode.commands.executeCommand('sample-ext.getArtifacts', privateToken, pathToCert, pipelineId);
           break;
         }
       }

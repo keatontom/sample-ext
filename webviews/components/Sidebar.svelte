@@ -12,22 +12,23 @@
   let treeViewData = '';
 
   let gitLabUrl = 'https://gitlab.tinaa.osc.tac.net/api/v4/projects';
-  let privateToken = 'aY_x1SxRm154wmsbhNmF';
+  let privateToken = '_vzSWoePgMNckpqxPe65';
   let pathToCert = '/usr/local/share/ca-certificates/TCSO-root-CA.crt';
 
   let projectName = '';
   let groupId = '';
 
-  let ref = 'master';
+  let ref = 'fix_pipeline';
   let triggerToken = 'glptt-4a24e6016284ec9615c9facb85b70ab8f0649c10';
-  let commitId = '4d45bc1ee66bbf5667f43cedf7a6f02593bba663';
-  let entityName = 'arp';
-  let modelCommitId = '4d45bc1ee66bbf5667f43cedf7a6f02593bba663';
-  let modelFilename = 'ipNetToMediaTable.yang';
-  let modelName = 'arp';
-  let modelUrl = 'git@gitlab.tinaa.osc.tac.net:devops-irc/yang-evolution-scenarios.git';
-  let url = 'git@gitlab.tinaa.osc.tac.net:devops-irc/yang-evolution-scenarios.git';
+  let commitId = 'aa201b60dd7f29a95c7a1618b193fec2cea62451';
+  let entityName = 'pltf-arp-table';
+  let modelCommitId = 'aa201b60dd7f29a95c7a1618b193fec2cea62451';
+  let modelFilename = 'arp.yang';
+  let modelName = 'pltf-arp-table';
+  let modelUrl = 'git@gitlab.tinaa.osc.tac.net:HOMA/entities/pltf-arp-table.git';
+  let url = 'git@gitlab.tinaa.osc.tac.net:HOMA/entities/pltf-arp-table.git';
 
+  let pipelineId = ''
 
   window.addEventListener('message', event => {
     const message = event.data;
@@ -37,6 +38,9 @@
         break;
       case 'connectedToGitLab':
         currentView = 'GitLabActions';
+        break;
+      case 'triggeredPipeline':
+        currentView = 'PipelineActions';
         break;
     }
   });
@@ -110,7 +114,7 @@
     currentView = 'triggerPipeline'
   }
 
-  function triggerPipeline() {
+  async function triggerPipeline() {
     vscode.postMessage({
       type: 'triggerPipeline',
       value: {
@@ -126,8 +130,44 @@
         modelUrl,
         url
       }
-    })
+    });
+    window.addEventListener('message', event => {
+    const message = event.data;
+    if (message.type === 'pipelineId') {
+      pipelineId = message.value; // Capture the pipelineId
+    }
+   });
   }
+
+  function viewJobs() {
+  if (!pipelineId) {
+    vscode.window.showErrorMessage("Pipeline ID is not available.");
+    return;
+  }
+  vscode.postMessage({
+    type: 'viewJobs',
+    value: {
+      privateToken,
+      pathToCert,
+      pipelineId
+    }
+  });
+  }
+  
+  function getArtifacts() {
+  if (!pipelineId) {
+    vscode.window.showErrorMessage("Pipeline ID is not available.");
+    return;
+  }
+  vscode.postMessage({
+    type: 'getArtifacts',
+    value: {
+      privateToken,
+      pathToCert,
+      pipelineId
+    }
+  });
+}
 
 
   // Reactive var
@@ -193,6 +233,12 @@
           <button on:click={triggerPipeline}>Trigger Pipeline</button>
           <button on:click={backToGitLabActions}>Back</button>
         {/if}
+
+                {#if currentView === 'PipelineActions'}
+                  <button on:click={viewJobs}>View Jobs</button> 
+                  <button on:click={getArtifacts}>Get Artifacts</button> 
+                  <button on:click={triggerPipelinePage}>Back</button>
+                {/if}
 
 
 <style>

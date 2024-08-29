@@ -110,8 +110,10 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
     "@tsconfig/svelte": "^5.0.4",
+    "@types/adm-zip": "^0.5.5",
     "@types/mocha": "^10.0.6",
     "@types/node": "18.x",
+    "@types/unzipper": "^0.10.10",
     "@types/vscode": "^1.89.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
@@ -131,11 +133,13 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@sveltejs/kit": "^2.5.18",
+    "adm-zip": "^0.5.15",
     "axios": "^1.4.0",
     "child_process": "^1.0.2",
     "fs": "^0.0.1-security",
     "https": "^1.0.0",
     "path": "^0.12.7",
-    "@sveltejs/kit": "^2.5.18"
+    "unzipper": "^0.12.3"
   }
 }

@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as https from 'https';
 import { validateNamingConventions } from './diagnostics';
 import { validateYangFile } from './diagnostics';
-import { triggerPipeline } from './pipeline';
+import { triggerPipeline, viewJob, getArtifacts } from './pipeline';
 
 
 // This method is called when your extension is activated
@@ -221,7 +221,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Trigger Pipeline
 	context.subscriptions.push(
-		vscode.commands.registerCommand('sample-ext.triggerPipeline', (
+		vscode.commands.registerCommand('sample-ext.triggerPipeline', async (
 			ref: string,
 			triggerToken: string,
 			privateToken: string,
@@ -232,22 +232,50 @@ export function activate(context: vscode.ExtensionContext) {
 			modelFilename: string,
 			modelName: string,
 			modelUrl: string,
-			url: string) => {
-			
+			url: string
+		) => {	
 			if (ref && triggerToken && privateToken && pathToCert && commitId && entityName && modelCommitId && modelFilename && modelName && modelUrl) {
-				triggerPipeline(ref, triggerToken, privateToken, pathToCert, commitId, entityName, modelCommitId, modelFilename, modelName, modelUrl, url);
+				triggerPipeline(sidebarProvider, ref, triggerToken, privateToken, pathToCert, commitId, entityName, modelCommitId, modelFilename, modelName, modelUrl, url);
 			} else {
 				vscode.window.showErrorMessage('All fields are required to trigger the pipeline.');
 			}
 		})
 	);
 
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.viewJob', async(
+			privateToken: string,
+			pathToCert: string,
+			pipelineId: number
+		) => {
+			if (privateToken && pathToCert && pipelineId) {
+				viewJob(sidebarProvider, privateToken, pathToCert, pipelineId);
+			}   else {
+				vscode.window.showErrorMessage('All fields are required to view jobs.');
+			}
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('sample-ext.getArtifacts', async (
+		  privateToken: string,
+		  pathToCert: string,
+		  pipelineId: number
+		) => {
+		  if (privateToken && pathToCert && pipelineId) {
+			getArtifacts(sidebarProvider, privateToken, pathToCert, pipelineId);
+		  } else {
+			vscode.window.showErrorMessage('All fields are required to get artifacts.');
+		  }
+		})
+	  );
+
 
 }
 
 // Fuction to call GitLab API
 // glpat-Bxz9y-TGCk2aAGAPqXxt - https://gitlab.com/api/v4/projects
-// aY_x1SxRm154wmsbhNmF - https://gitlab.tinaa.osc.tac.net/api/v4/projects
+// _vzSWoePgMNckpqxPe65 - https://gitlab.tinaa.osc.tac.net/api/v4/projects
 // local machine path: /usr/local/share/ca-certificates/TCSO-root-CA.crt
 
 
