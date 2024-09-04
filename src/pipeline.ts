@@ -6,6 +6,7 @@ import FormData from 'form-data'; // Import FormData
 import path from 'path';
 import AdmZip from 'adm-zip';
 import { SidebarProvider } from './SidebarProvider';
+import * as os from 'os';
 
 export async function getArtifacts(
     sidebarProvider: SidebarProvider,
@@ -40,7 +41,7 @@ export async function getArtifacts(
 
             // Construct the artifact download URL
             const artifactUrl = `https://gitlab.tinaa.osc.tac.net/api/v4/projects/720/jobs/${artifactJob.id}/artifacts`;
-            const outputDir = path.join(vscode.workspace.rootPath || '', `${artifactJob.name}-artifacts`);
+            const outputDir = path.join(vscode.workspace.rootPath || '', `pipeline${pipelineId}-artifacts`);
             const outputPath = path.join(outputDir, artifactJob.artifacts_file.filename);
 
             // Ensure the output directory exists
@@ -61,17 +62,25 @@ export async function getArtifacts(
 
             // Write the downloaded artifact ZIP file to the specified path
             fs.writeFileSync(outputPath, artifactResponse.data);
-            vscode.window.showInformationMessage(`Artifacts downloaded to ${outputPath}`);
             // Unzip the file into the same directory using adm-zip
             const zip = new AdmZip(outputPath);
             zip.extractAllTo(outputDir, true);
             // Delete zip after extraction
             fs.unlinkSync(outputPath);
-            // Open artifacts
-            const uri = vscode.Uri.file(outputDir);
-            vscode.commands.executeCommand('vscode.openFolder', uri, { forceNewWindow: false });
 
-            
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (fs.existsSync(outputDir) && fs.readdirSync(outputDir).length > 0) {
+                const openFolder = await vscode.window.showInformationMessage(`Artifacts downloaded to ${outputDir}. Would you like to open the artifacts?`, 'Yes', 'No');
+                if (openFolder === 'Yes') {
+                    const uri = vscode.Uri.file(outputDir);
+                    vscode.commands.executeCommand('vscode.openFolder', uri, { forceNewWindow: false });
+                } 
+            } else {
+                vscode.window.showErrorMessage('Artifacts extraction failed');
+            }
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         } else {
             vscode.window.showInformationMessage('No successful jobs with artifacts found for this pipeline.');
@@ -118,15 +127,19 @@ export async function viewJob(
             const jobs = response.data;
 
             // Display jobs in a VS Code quick pick list
-            const jobNames = jobs.map((job: any) => `${job.name} - ${job.status}`);
+            const jobNames = jobs.map((job: any) => `${job.name}`);
             const selectedJob = await vscode.window.showQuickPick(jobNames, {
                 placeHolder: 'Select a job to view details'
             });
 
             if (selectedJob) {
-                const selectedJobDetails = jobs.find((job: any) => `${job.name} - ${job.status}` === selectedJob);
+                const selectedJobDetails = jobs.find((job: any) => `${job.name}` === selectedJob);
                 if (selectedJobDetails) {
-                    vscode.window.showInformationMessage(`Job Name: ${selectedJobDetails.name}\nStatus: ${selectedJobDetails.status}\nStarted At: ${selectedJobDetails.started_at}\nFinished At: ${selectedJobDetails.finished_at}`);
+                    vscode.window.showInformationMessage(
+                        `Job Name: ${selectedJobDetails.name}\n` +
+                        `Status: ${selectedJobDetails.status}\n` +
+                        `Started At: ${selectedJobDetails.started_at}\n` +
+                        `Finished At: ${selectedJobDetails.finished_at}`);
                 }
             }
         } else {
