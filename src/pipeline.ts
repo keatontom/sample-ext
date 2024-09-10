@@ -255,15 +255,3 @@ export async function triggerPipeline(
 }
 
 // glptt-4a24e6016284ec9615c9facb85b70ab8f0649c10 - vscode trigger token
-// curl -X POST \
-//      --fail \
-//      -F token=glptt-83256e3b06e3266af36357ce689a8af3ed789c31 \
-//      -F "ref=fix_pipeline" \
-//      -F "variables[COMMIT_ID]=aa201b60dd7f29a95c7a1618b193fec2cea62451" \
-//      -F "variables[ENTITY_NAME]=pltf-arp-table" \
-//      -F "variables[MODEL_COMMIT_ID]=aa201b60dd7f29a95c7a1618b193fec2cea62451" \
-//      -F "variables[MODEL_FILENAME]=arp.yang" \
-//      -F "variables[MODEL_NAME]=pltf-arp-table" \
-//      -F "variables[MODEL_URL]=git@gitlab.tinaa.osc.tac.net:HOMA/entities/pltf-arp-table.git" \
-//      -F "variables[URL]=git@gitlab.tinaa.osc.tac.net:HOMA/entities/pltf-arp-table.git" \
-// https://gitlab.tinaa.osc.tac.net/api/v4/projects/720/trigger/pipeline
