@@ -71,16 +71,37 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           vscode.commands.executeCommand('sample-ext.triggerPipeline', privateToken, pathToCert, triggerToken, ref, commitId, entityName, modelCommitId, modelFilename, modelName, modelUrl, url);
           break;
         }
+        // case "viewJobs": {
+        //   const { privateToken, pathToCert, pipelineId } = data.value;
+        //   vscode.commands.executeCommand('sample-ext.viewJob', privateToken, pathToCert, pipelineId);
+        //   break;
+        // }
+        // case "getArtifacts": {
+        //   const { privateToken, pathToCert, pipelineId } = data.value;
+        //   vscode.commands.executeCommand('sample-ext.getArtifacts', privateToken, pathToCert, pipelineId);
+        //   break;
+        // }
         case "viewJobs": {
-          const { privateToken, pathToCert, pipelineId } = data.value;
-          vscode.commands.executeCommand('sample-ext.viewJob', privateToken, pathToCert, pipelineId);
+          const { pipelineId, privateToken, pathToCert } = data.value;
+          if (pipelineId && privateToken && pathToCert) {
+            vscode.commands.executeCommand('sample-ext.viewJob', privateToken, pathToCert, pipelineId);
+          } else {
+            vscode.window.showErrorMessage('All fields are required to view jobs.');
+          }
           break;
         }
+        
         case "getArtifacts": {
-          const { privateToken, pathToCert, pipelineId } = data.value;
-          vscode.commands.executeCommand('sample-ext.getArtifacts', privateToken, pathToCert, pipelineId);
+          const { pipelineId, privateToken, pathToCert } = data.value;
+          if (pipelineId && privateToken && pathToCert) {
+            vscode.commands.executeCommand('sample-ext.getArtifacts', privateToken, pathToCert, pipelineId);
+          } else {
+            vscode.window.showErrorMessage('All fields are required to get artifacts.');
+          }
           break;
         }
+        
+        
       }
     });
 

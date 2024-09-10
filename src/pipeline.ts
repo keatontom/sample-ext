@@ -8,12 +8,19 @@ import AdmZip from 'adm-zip';
 import { SidebarProvider } from './SidebarProvider';
 import * as os from 'os';
 
+
 export async function getArtifacts(
     sidebarProvider: SidebarProvider,
     privateToken: string,
     pathToCert: string,
     pipelineId: number
+
 ) {
+    if (!pipelineId) {
+        vscode.window.showErrorMessage('Pipeline ID is required to get artifacts.');
+        return;
+    }
+
     const ca = fs.readFileSync(pathToCert);
     const jobsUrl = `https://gitlab.tinaa.osc.tac.net/api/v4/projects/720/pipelines/${pipelineId}/jobs`;
 
@@ -29,7 +36,6 @@ export async function getArtifacts(
         });
 
         if (response.status === 200 && response.data.length > 0) {
-            // Find the first successful job with artifacts
             const jobs = response.data.filter((job: any) => job.status === 'success' && job.artifacts_file);
 
             if (jobs.length === 0) {
@@ -37,17 +43,17 @@ export async function getArtifacts(
                 return;
             }
 
-            const artifactJob = jobs[0]; // Get the first successful job with artifacts
-
-            // Construct the artifact download URL
+            const artifactJob = jobs[0];
             const artifactUrl = `https://gitlab.tinaa.osc.tac.net/api/v4/projects/720/jobs/${artifactJob.id}/artifacts`;
-            const outputDir = path.join(vscode.workspace.rootPath || '', `pipeline${pipelineId}-artifacts`);
+
+            // Fix outputDir construction
+            let outputDir = path.join(vscode.workspace.rootPath || os.tmpdir(), `pipeline-${pipelineId}-artifacts`);
             const outputPath = path.join(outputDir, artifactJob.artifacts_file.filename);
 
-            // Ensure the output directory exists
             if (!fs.existsSync(outputDir)) {
                 fs.mkdirSync(outputDir);
             }
+
 
             const artifactResponse = await axios.get(artifactUrl, {
                 responseType: 'arraybuffer',
@@ -60,40 +66,32 @@ export async function getArtifacts(
                 }),
             });
 
-            // Write the downloaded artifact ZIP file to the specified path
             fs.writeFileSync(outputPath, artifactResponse.data);
-            // Unzip the file into the same directory using adm-zip
             const zip = new AdmZip(outputPath);
             zip.extractAllTo(outputDir, true);
-            // Delete zip after extraction
             fs.unlinkSync(outputPath);
 
-
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             if (fs.existsSync(outputDir) && fs.readdirSync(outputDir).length > 0) {
                 const openFolder = await vscode.window.showInformationMessage(`Artifacts downloaded to ${outputDir}. Would you like to open the artifacts?`, 'Yes', 'No');
                 if (openFolder === 'Yes') {
                     const uri = vscode.Uri.file(outputDir);
-                    vscode.commands.executeCommand('vscode.openFolder', uri, { forceNewWindow: false });
+                    vscode.commands.executeCommand('vscode.openFolder', uri, { forceNewWindow: true });
                 } 
             } else {
                 vscode.window.showErrorMessage('Artifacts extraction failed');
             }
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         } else {
             vscode.window.showInformationMessage('No successful jobs with artifacts found for this pipeline.');
         }
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
+    } catch (error: unknown) {
+        if (error instanceof Error) {
             vscode.window.showErrorMessage(`Error fetching artifacts: ${error.message}`);
-        } else if (error instanceof Error) {
-            vscode.window.showErrorMessage(`Error: ${error.message}`);
         } else {
             vscode.window.showErrorMessage('Unknown error occurred');
         }
     }
+    
 }
 
 
@@ -103,6 +101,7 @@ export async function viewJob(
     privateToken: string,
     pathToCert: string,
     pipelineId: number
+
 ) {
     if (!pipelineId) {
         vscode.window.showErrorMessage('Pipeline ID is required to view jobs.');
@@ -126,35 +125,38 @@ export async function viewJob(
         if (response.status === 200 && response.data.length > 0) {
             const jobs = response.data;
 
-            // Display jobs in a VS Code quick pick list
             const jobNames = jobs.map((job: any) => `${job.name}`);
             const selectedJob = await vscode.window.showQuickPick(jobNames, {
-                placeHolder: 'Select a job to view details'
+              placeHolder: 'Select a job to view details',
             });
-
+          
             if (selectedJob) {
-                const selectedJobDetails = jobs.find((job: any) => `${job.name}` === selectedJob);
-                if (selectedJobDetails) {
-                    vscode.window.showInformationMessage(
-                        `Job Name: ${selectedJobDetails.name}\n` +
-                        `Status: ${selectedJobDetails.status}\n` +
-                        `Started At: ${selectedJobDetails.started_at}\n` +
-                        `Finished At: ${selectedJobDetails.finished_at}`);
-                }
+              const selectedJobDetails = jobs.find(
+                (job: any) => `${job.name}` === selectedJob
+              );
+              if (selectedJobDetails) {
+                const jobDetails = `**Job Name**: ${selectedJobDetails.name}\n` +
+                  `**Status**: ${selectedJobDetails.status}\n` +
+                  `**Started At**: ${selectedJobDetails.started_at || 'N/A'}\n` +
+                  `**Finished At**: ${selectedJobDetails.finished_at || 'N/A'}`;
+          
+                // Show job details in an information message
+                vscode.window.showInformationMessage(jobDetails, { modal: true });
+              }
             }
         } else {
             vscode.window.showInformationMessage('No jobs found for this pipeline.');
         }
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
-            vscode.window.showErrorMessage(`Error fetching jobs: ${error.message}`);
-        } else if (error instanceof Error) {
-            vscode.window.showErrorMessage(`Error: ${error.message}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            vscode.window.showErrorMessage(`Error fetching artifacts: ${error.message}`);
         } else {
             vscode.window.showErrorMessage('Unknown error occurred');
         }
     }
+    
 }
+
 
 export async function triggerPipeline(
     sidebarProvider: SidebarProvider,

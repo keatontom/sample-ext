@@ -30,6 +30,9 @@
 
   let pipelineId = ''
 
+  let jobDetails: Array<{ name: string; status: string; started_at: string; finished_at: string }> = [];
+
+
   window.addEventListener('message', event => {
     const message = event.data;
     switch (message.type) {
@@ -42,6 +45,10 @@
       case 'triggeredPipeline':
         currentView = 'PipelineActions';
         break;
+      case 'jobDetails':
+        jobDetails = message.value;
+        break;
+
     }
   });
 
@@ -67,23 +74,23 @@
   }
 
   function navigateToGitLab() {
-    currentView = 'gitlab'
+    currentView = 'gitlab';
   }
 
   function navigateToYang() {
-    currentView = 'yang'
+    currentView = 'yang';
   }
 
   function backToMain() {
-    currentView = 'main'
+    currentView = 'main';
   }
 
   function backToGitLabActions() {
-    currentView = 'GitLabActions'
+    currentView = 'GitLabActions';
   }
 
   function createRepoPage() {
-    currentView = 'createRepo'
+    currentView = 'createRepo';
   }
 
   function connectToGitLab() {
@@ -111,7 +118,7 @@
   }
 
   function triggerPipelinePage() {
-    currentView = 'triggerPipeline'
+    currentView = 'triggerPipeline';
   }
 
   async function triggerPipeline() {
@@ -132,43 +139,38 @@
       }
     });
     window.addEventListener('message', event => {
-    const message = event.data;
-    if (message.type === 'pipelineId') {
-      pipelineId = message.value; // Capture the pipelineId
-    }
-   });
+      const message = event.data;
+      if (message.type === 'pipelineId') {
+        pipelineId = message.value; // Capture the pipelineId
+      }
+    });
+  }
+
+  function monitorPipelinePage() {
+    currentView = 'MonitorPipeline';  // New monitor pipeline view
   }
 
   function viewJobs() {
-  if (!pipelineId) {
-    vscode.window.showErrorMessage("Pipeline ID is not available.");
-    return;
+    vscode.postMessage({
+      type: 'viewJobs',
+      value: { 
+        pipelineId, 
+        privateToken, 
+        pathToCert 
+      }
+    });
   }
-  vscode.postMessage({
-    type: 'viewJobs',
-    value: {
-      privateToken,
-      pathToCert,
-      pipelineId
-    }
-  });
-  }
-  
-  function getArtifacts() {
-  if (!pipelineId) {
-    vscode.window.showErrorMessage("Pipeline ID is not available.");
-    return;
-  }
-  vscode.postMessage({
-    type: 'getArtifacts',
-    value: {
-      privateToken,
-      pathToCert,
-      pipelineId
-    }
-  });
-}
 
+  function getArtifacts() {
+    vscode.postMessage({
+      type: 'getArtifacts',
+      value: { 
+        pipelineId, 
+        privateToken, 
+        pathToCert 
+      }
+    });
+  }
 
   // Reactive var
   $: {
@@ -178,7 +180,7 @@
 
 <!--Main View-->
 {#if currentView === 'main'}
-  <button on:click={navigateToYang}>Yang Edit</button>
+  <!-- <button on:click={navigateToYang}>Yang Edit</button> -->
   <button on:click={navigateToGitLab}>Connect to GitLab</button>
 {/if}
 
@@ -192,6 +194,7 @@
   {#if treeViewData}
     <pre>{treeViewData}</pre>
   {/if}
+  <button on:click={backToMain}>Back</button>
 {/if}
 
 <!--GitLab Connection View-->
@@ -207,39 +210,41 @@
 {#if currentView === 'GitLabActions'}
   <button on:click={createRepoPage}>Create GitLab Repo</button>
   <button on:click={triggerPipelinePage}>Trigger Pipeline</button>
+  <button on:click={monitorPipelinePage}>Monitor Pipeline</button> <!-- New Monitor Pipeline button -->
   <button on:click={backToMain}>Back</button>
 {/if}
 
-        <!--GitLab Create Project/Repo View-->
-        {#if currentView === 'createRepo'}
-          <input type="text" bind:value={projectName} placeholder="Enter Project Name"/>
-          <input type="text" bind:value={groupId} placeholder="Enter Group Id"/>
-          <button on:click={createGitLabRepo}>Create Repo</button>
-          <button on:click={backToGitLabActions}>Back</button>
-        {/if}
+<!--GitLab Create Project/Repo View-->
+{#if currentView === 'createRepo'}
+  <input type="text" bind:value={projectName} placeholder="Enter Project Name"/>
+  <input type="text" bind:value={groupId} placeholder="Enter Group Id"/>
+  <button on:click={createGitLabRepo}>Create Repo</button>
+  <button on:click={backToGitLabActions}>Back</button>
+{/if}
 
-        <!--GitLab Trigger Pipeline View-->
-        {#if currentView === 'triggerPipeline'}
-          <input type="text" bind:value={triggerToken} placeholder="Enter Pipeline Trigger Token"/>
-          <input type="text" bind:value={ref} placeholder="Enter Branch or Tag Name"/>
-          <input type="text" bind:value={commitId} placeholder="Enter Commit Id"/>
-          <input type="text" bind:value={entityName} placeholder="Enter Entity Name"/>
-          <input type="text" bind:value={modelCommitId} placeholder="Enter Model Commit Id"/>
-          <input type="text" bind:value={modelFilename} placeholder="Enter Model Filename"/>
-          <input type="text" bind:value={modelName} placeholder="Enter Model Name"/>
-          <input type="text" bind:value={modelUrl} placeholder="Eneter Model URL"/>
-          <input type="text" bind:value={url} placeholder="Enter URL"/>
+<!--GitLab Trigger Pipeline View-->
+{#if currentView === 'triggerPipeline'}
+  <input type="text" bind:value={triggerToken} placeholder="Enter Pipeline Trigger Token"/>
+  <input type="text" bind:value={ref} placeholder="Enter Branch or Tag Name"/>
+  <input type="text" bind:value={commitId} placeholder="Enter Commit Id"/>
+  <input type="text" bind:value={entityName} placeholder="Enter Entity Name"/>
+  <input type="text" bind:value={modelCommitId} placeholder="Enter Model Commit Id"/>
+  <input type="text" bind:value={modelFilename} placeholder="Enter Model Filename"/>
+  <input type="text" bind:value={modelName} placeholder="Enter Model Name"/>
+  <input type="text" bind:value={modelUrl} placeholder="Enter Model URL"/>
+  <input type="text" bind:value={url} placeholder="Enter URL"/>
 
-          <button on:click={triggerPipeline}>Trigger Pipeline</button>
-          <button on:click={backToGitLabActions}>Back</button>
-        {/if}
+  <button on:click={triggerPipeline}>Trigger Pipeline</button>
+  <button on:click={backToGitLabActions}>Back</button>
+{/if}
 
-                {#if currentView === 'PipelineActions'}
-                  <button on:click={viewJobs}>View Jobs</button> 
-                  <button on:click={getArtifacts}>Get Artifacts</button> 
-                  <button on:click={triggerPipelinePage}>Back</button>
-                {/if}
-
+<!-- Monitor Pipeline View -->
+{#if currentView === 'MonitorPipeline'}
+  <input type="text" bind:value={pipelineId} placeholder="Enter Pipeline ID" />
+  <button on:click={viewJobs}>View Jobs</button> 
+  <button on:click={getArtifacts}>Get Artifacts</button> 
+  <button on:click={backToGitLabActions}>Back</button> <!-- Back to GitLab Actions -->
+{/if}
 
 <style>
   pre {
@@ -251,4 +256,3 @@
     color: black;
   }
 </style>
-
